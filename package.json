@@ -1,0 +1,32 @@
+{
+  "name": "gpt-3-chat-bot",
+  "version": "1.0.0",
+  "description": "An AI bot that will talk to you using GPT-3",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node --experimental-specifier-resolution=node dist/index.js",
+    "build": "tsc --build",
+    "build:watch": "tsc --watch",
+    "put-commands": "npm run build && node --experimental-specifier-resolution=node dist/utils/deployCommands.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mist8kengas/ai-chat-bot.git"
+  },
+  "author": "mist8kengas",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/mist8kengas/ai-chat-bot/issues"
+  },
+  "homepage": "https://github.com/mist8kengas/ai-chat-bot#readme",
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^1.4.0",
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "openai": "^3.1.0"
+  },
+  "type": "module"
+}
