@@ -1,6 +1,6 @@
 {
   "name": "gpt-3-chat-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An AI bot that will talk to you using GPT-3",
   "main": "dist/index.js",
   "scripts": {

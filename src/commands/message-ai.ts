@@ -45,7 +45,7 @@ const command: Command = {
           value: filterString(prompt || '< No prompt given >'),
         },
       ],
-      timestamp: new Date()
+      timestamp: new Date(),
     })
     responseEmbed.setAuthor({
       url: 'https://github.com/mist8kengas/ai-chat-bot',
@@ -87,7 +87,7 @@ const command: Command = {
       })
 
     if (textCompletion === null)
-      return interaction.reply({
+      return interaction.editReply({
         embeds: [
           responseEmbed.setDescription(
             `:warning: An error occured while trying to generate a response.`
