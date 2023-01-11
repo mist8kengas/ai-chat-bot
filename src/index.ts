@@ -98,14 +98,9 @@ client.commandCooldown = {
   },
 }
 
+console.time('client-ready')
 client.once('ready', async () => {
-  if (!client.user) return
-  const { user, guilds } = client
-  console.log(
-    '[bot]',
-    `Logged in as: ${user?.tag}`,
-    `in ${guilds.cache.size} servers`
-  )
+  console.timeEnd('client-ready')
 
   // listen to user commands
   client.on('interactionCreate', (interaction: Interaction) =>
@@ -113,4 +108,16 @@ client.once('ready', async () => {
   )
 })
 
-client.login(BOT_TOKEN).catch(error => console.error('[bot:error]', error))
+await client
+  .login(BOT_TOKEN)
+  .then(() => {
+    if (client.user) {
+      const { user, guilds } = client
+      console.log(
+        '[bot]',
+        `Logged in as: ${user?.tag}`,
+        `in ${guilds.cache.size} servers`
+      )
+    }
+  })
+  .catch(error => console.error('[bot:error]', error))

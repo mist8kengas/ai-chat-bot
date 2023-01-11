@@ -1,18 +1,33 @@
 import { Command } from '..'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
-function filterString(data: string) {
-  return '```\n' + data + '\n```'
+/**
+ * Filters extra whitespace from text
+ */
+function filterText(data: string) {
+  const pattern = new RegExp(/^(?:[\n]+|)(?<text>[^\0]+)$/)
+  const filter = pattern.exec(data)
+  if (filter) return filter.groups?.text
 }
 
+/**
+ * Formats string to a Discord embed-friendly format
+ */
+function formatString(data: string) {
+  return '```\n' + filterText(data) + '\n```'
+}
+
+/**
+ * Filters OpenAI message completion to only include the response (and prompt)
+ */
 function filterResponse(response: string | undefined) {
   if (!response) return
 
-  const filterExp = new RegExp(
-    /^The AI is the character C\.C\. from Code:Geass\nHuman: (?:.*)\nAI: (.*)$/
+  const pattern = new RegExp(
+    /^(?<context>[^\0]+)\nHuman: (?<prompt>[^\0]+)\nAI:([\s]+|)(?<response>[^\0]+)$/
   )
-  const [, filteredResponse] = filterExp.exec(response) || []
-  return filteredResponse
+  const filter = pattern.exec(response)
+  if (filter) return filter.groups?.response
 }
 
 const command: Command = {
@@ -38,11 +53,11 @@ const command: Command = {
     // create embed
     const responseEmbed = client.createEmbed({
       title: 'とある対話',
-      description: filterString(['🧩', 'Thinking...'].join(' ')),
+      description: formatString(['🧩', 'Thinking...'].join(' ')),
       fields: [
         {
           name: 'Prompt',
-          value: filterString(prompt || '< No prompt given >'),
+          value: formatString(prompt || '< No prompt given >'),
         },
       ],
       timestamp: new Date(),
@@ -61,12 +76,13 @@ const command: Command = {
 
     // openai things
     const maxResponseLength = 2 ** 12 // 4,096
+    const textContext = 'The AI is the character C.C. from Code:Geass'
     const textCompletion = await client.openai
       .createCompletion({
         model,
 
         // character: c.c.
-        prompt: `The AI is the character C.C. from Code:Geass\nHuman: ${prompt}\nAI:`,
+        prompt: `${textContext}\nHuman: ${prompt}\nAI:`,
         stop: ['Human: ', 'AI: '],
 
         max_tokens: maxResponseLength / 4,
@@ -108,19 +124,12 @@ const command: Command = {
     }
 
     responseEmbed.setDescription(
-      filterString(
+      formatString(
         response
           ? limitResponse(response, maxResponseLength)
           : '< No response >'
       )
     )
-
-    responseEmbed.setFields([
-      {
-        name: 'Prompt',
-        value: filterString(prompt || '< No prompt given >'),
-      },
-    ])
 
     // final reply
     interaction.editReply({ embeds: [responseEmbed] })
