@@ -34,11 +34,9 @@ export default async function interactionCreate(
       } else client.commandCooldown.list.delete(interaction.user.id)
     }
 
-    try {
-      await command.execute({ client, interaction })
-    } catch (error) {
+    command.execute({ client, interaction }).catch(error => {
       console.error('[interaction:error]', error)
-      await interaction
+      interaction
         .followUp({
           embeds: [
             client
@@ -50,6 +48,6 @@ export default async function interactionCreate(
           ephemeral: true,
         })
         .catch(error => console.error('[interaction:error:fatal]', error))
-    }
+    })
   }
 }

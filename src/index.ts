@@ -2,9 +2,6 @@
 import dotenv from 'dotenv'
 import { readdirSync } from 'fs'
 
-// openai imports
-import { Configuration, OpenAIApi } from 'openai'
-
 // discord imports
 import {
   GatewayIntentBits,
@@ -20,6 +17,9 @@ import { SlashCommandBuilder } from '@discordjs/builders'
 import { createEmbed } from './utils/embed'
 import interactionCreate from './handlers/interactionCreate'
 
+// openai imports
+import { Configuration } from 'openai'
+
 //
 // setup .env
 dotenv.config({ encoding: 'utf8' })
@@ -28,7 +28,6 @@ const { OPENAI_KEY, BOT_TOKEN } = process.env
 //
 // setup openai
 const openaiConfig = new Configuration({ apiKey: OPENAI_KEY })
-const openai = new OpenAIApi(openaiConfig)
 
 //
 // setup discord
@@ -39,7 +38,7 @@ export interface ExtendedClient extends Client {
     list: Collection<Snowflake, Date>
     add: (id: Snowflake) => Collection<Snowflake, Date> | null
   }
-  openai: OpenAIApi
+  openaiConfig: Configuration
 }
 export interface Command {
   data: SlashCommandBuilder
@@ -84,7 +83,7 @@ for (const name of commandFiles) {
 client.createEmbed = createEmbed
 
 // openai extension
-client.openai = openai
+client.openaiConfig = openaiConfig
 
 // cooldown
 const commandCooldownList = new Collection<Snowflake, Date>()
@@ -93,7 +92,7 @@ client.commandCooldown = {
   add: id => {
     if (commandCooldownList.get(id)) return null
 
-    const cooldown = 5e3 // 5 second cooldown
+    const cooldown = 10e3 // 10 second cooldown
     return commandCooldownList.set(id, new Date(Date.now() + cooldown))
   },
 }
@@ -108,16 +107,18 @@ client.once('ready', async () => {
   )
 })
 
-await client
-  .login(BOT_TOKEN)
-  .then(() => {
-    if (client.user) {
-      const { user, guilds } = client
-      console.log(
-        '[bot]',
-        `Logged in as: ${user?.tag}`,
-        `in ${guilds.cache.size} servers`
-      )
-    }
-  })
-  .catch(error => console.error('[bot:error]', error))
+if (BOT_TOKEN)
+  client
+    .login(BOT_TOKEN)
+    .then(() => {
+      if (client.user) {
+        const { user, guilds } = client
+        console.log(
+          '[bot]',
+          `Logged in as: ${user?.tag}`,
+          `in ${guilds.cache.size} servers`
+        )
+      }
+    })
+    .catch(error => console.error('[bot:error]', error))
+else throw new Error("No bot token, can't login! exiting.")

@@ -1,6 +1,8 @@
 import { Command } from '..'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
+import { OpenAIApi } from 'openai'
+
 /**
  * Filters extra whitespace from text
  */
@@ -47,11 +49,18 @@ const command: Command = {
   async execute({ client, interaction }) {
     if (!interaction.isChatInputCommand()) return
 
+    const openai = new OpenAIApi(client.openaiConfig)
+
     const prompt = interaction.options.getString('prompt', true)
     const model = 'text-davinci-003' // use "text-davinci-003" or "text-curie-001"
 
     // create embed
     const responseEmbed = client.createEmbed({
+      author: {
+        url: 'https://github.com/mist8kengas/ai-chat-bot',
+        name: 'AIちゃん',
+        iconURL: client.user?.avatarURL() || undefined,
+      },
       title: 'とある対話',
       description: formatString(['🧩', 'Thinking...'].join(' ')),
       fields: [
@@ -60,24 +69,19 @@ const command: Command = {
           value: formatString(prompt || '< No prompt given >'),
         },
       ],
+      footer: {
+        text: model,
+        iconURL:
+          'https://raw.githubusercontent.com/mist8kengas/ai-chat-bot/master/assets/openai-logo-white.png',
+      },
       timestamp: new Date(),
-    })
-    responseEmbed.setAuthor({
-      url: 'https://github.com/mist8kengas/ai-chat-bot',
-      name: 'AIちゃん',
-      iconURL: client.user?.avatarURL() || undefined,
-    })
-    responseEmbed.setFooter({
-      text: model,
-      iconURL:
-        'https://raw.githubusercontent.com/mist8kengas/ai-chat-bot/master/assets/openai-logo-white.png',
     })
     await interaction.reply({ embeds: [responseEmbed] })
 
     // openai things
     const maxResponseLength = 2 ** 12 // 4,096
     const textContext = 'The AI is the character C.C. from Code:Geass'
-    const textCompletion = await client.openai
+    const textCompletion = await openai
       .createCompletion({
         model,
 
@@ -134,8 +138,10 @@ const command: Command = {
     // final reply
     interaction.editReply({ embeds: [responseEmbed] })
 
-    // add cooldown to command issuer
-    client.commandCooldown.add(interaction.user.id)
+    // add command cooldown to guild
+    // or user if in direct messages
+    if (interaction.inGuild()) client.commandCooldown.add(interaction.guildId)
+    else client.commandCooldown.add(interaction.user.id)
   },
 }
 export default command
