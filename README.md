@@ -29,3 +29,4 @@ Installation:
 Usage:
 
 - Type `/message-ai prompt:<prompt>` to talk to the bot where `<prompt>` is your message (maximum of 1,000 characters)
+- Mention the bot together with your message to start talking to the bot. (maximum of 512 characters)
