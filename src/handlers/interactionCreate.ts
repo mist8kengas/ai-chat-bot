@@ -16,7 +16,9 @@ export default async function interactionCreate(
 
     if (command.cooldown) {
       // check cooldown
-      const cooldown = client.commandCooldown.list.get(interaction.user.id)
+      const cooldown = client.commandCooldown.list.get(
+        interaction.inGuild() ? interaction.guildId : interaction.user.id
+      )
       if (cooldown && cooldown.getTime() > Date.now()) {
         const secondsRemaining = new Date(
           cooldown.getTime() - Date.now()

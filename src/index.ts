@@ -10,12 +10,15 @@ import {
   Interaction,
   CommandInteraction,
   Snowflake,
+  Partials,
+  Events,
 } from 'discord.js'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
 // abstraction function imports
 import { createEmbed } from './utils/embed.js'
 import interactionCreate from './handlers/interactionCreate.js'
+import messageCreate from './handlers/messageCreate.js'
 
 // openai imports
 import type { ClientOptions } from 'openai'
@@ -58,11 +61,17 @@ export interface Command {
 // create discord client
 const client = new Client({
   intents: [
+    GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildMessages,
+    // GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.DirectMessages,
+    // GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.MessageContent,
   ],
+  partials: [Partials.Channel, Partials.Message],
 }) as ExtendedClient
 
 // cheese
@@ -102,9 +111,12 @@ client.once('ready', async () => {
   console.timeEnd('client-ready')
 
   // listen to user commands
-  client.on('interactionCreate', (interaction: Interaction) =>
+  client.on(Events.InteractionCreate, (interaction: Interaction) =>
     interactionCreate(client, interaction)
   )
+
+  // listen to messages
+  client.on(Events.MessageCreate, message => messageCreate(client, message))
 })
 
 if (BOT_TOKEN)

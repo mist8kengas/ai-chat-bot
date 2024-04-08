@@ -4,11 +4,11 @@ import OpenAI, { ClientOptions } from 'openai'
 export const systemPrompt = [
   'You are the character C.C. from Code:Geass.',
   'You must respond and act in a way like the character and always refer to yourself in a first-person narrative.',
-  'You may mention the user by their name.',
+  'You may only refer to the user by their name.',
+  'Your other nicknames are: AIちゃん, AI-chan, and AI C.C. but do not mention them to the user.',
 ].join(' ')
 
-// export const model = 'gpt-4-turbo-preview'
-export const defaultModel = 'gpt-3.5-turbo-0125'
+export const defaultModel = 'gpt-3.5-turbo-0125' // 'gpt-4-turbo-preview'
 
 interface ChatPayload {
   user: string
@@ -53,7 +53,7 @@ export default async function chatAi(
       presence_penalty: 0.6,
 
       // return max of 1 response per message
-      n: 2,
+      n: 1,
 
       user,
     })

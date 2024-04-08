@@ -2,7 +2,7 @@ import { Command } from '..'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
 import OpenAI from 'openai'
-import chatAi from '../utils/chatAi.js'
+import chatAi, { defaultModel } from '../utils/chatAi.js'
 import { ChatCompletionMessageParam } from 'openai/resources'
 
 /**
@@ -54,8 +54,6 @@ const command: Command = {
     if (!interaction.isChatInputCommand()) return
 
     const prompt = interaction.options.getString('prompt', true)
-    const model = 'gpt-4-turbo-preview'
-    //const model = 'text-davinci-003' // use "text-davinci-003" or "text-curie-001"
 
     // create embed
     const responseEmbed = client.createEmbed({
@@ -72,7 +70,7 @@ const command: Command = {
         },
       ],
       footer: {
-        text: model,
+        text: defaultModel,
         iconURL:
           'https://raw.githubusercontent.com/mist8kengas/ai-chat-bot/master/assets/openai-logo-white.png',
       },
@@ -100,7 +98,11 @@ const command: Command = {
     const [textChoices] = chatCompletion.choices
     const response = textChoices.message.content
 
-    console.log('[textCompletion]', chatCompletion, textChoices, { response })
+    console.debug('[interaction:textCompletion]', {
+      interaction,
+      chatCompletion,
+      response,
+    })
 
     // limit response to maxResponseLength with ellipses at the end
     function limitResponse(response: string, maxLength: number) {
