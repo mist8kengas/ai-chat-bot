@@ -1,6 +1,6 @@
 ## ai-chat-bot
 
-An AI bot that will talk to you using GPT-3
+An AI bot that will talk to you using GPT
 
 [Invite the bot](https://discord.com/api/oauth2/authorize?client_id=1060238290223116329&permissions=2048&scope=bot%20applications.commands)
 
