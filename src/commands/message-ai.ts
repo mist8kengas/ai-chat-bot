@@ -1,7 +1,9 @@
 import { Command } from '..'
 import { SlashCommandBuilder } from '@discordjs/builders'
 
-import { OpenAIApi } from 'openai'
+import OpenAI from 'openai'
+import chatAi from '../utils/chatAi.js'
+import { ChatCompletionMessageParam } from 'openai/resources'
 
 /**
  * Filters extra whitespace from text
@@ -21,6 +23,8 @@ function formatString(data: string) {
 
 /**
  * Filters OpenAI message completion to only include the response (and prompt)
+ *
+ * @deprecated
  */
 function filterResponse(response: string | undefined) {
   if (!response) return
@@ -49,10 +53,9 @@ const command: Command = {
   async execute({ client, interaction }) {
     if (!interaction.isChatInputCommand()) return
 
-    const openai = new OpenAIApi(client.openaiConfig)
-
     const prompt = interaction.options.getString('prompt', true)
-    const model = 'text-davinci-003' // use "text-davinci-003" or "text-curie-001"
+    const model = 'gpt-4-turbo-preview'
+    //const model = 'text-davinci-003' // use "text-davinci-003" or "text-curie-001"
 
     // create embed
     const responseEmbed = client.createEmbed({
@@ -61,7 +64,6 @@ const command: Command = {
         name: 'AIちゃん',
         iconURL: client.user?.avatarURL() || undefined,
       },
-      title: 'とある対話',
       description: formatString(['🧩', 'Thinking...'].join(' ')),
       fields: [
         {
@@ -80,33 +82,13 @@ const command: Command = {
 
     // openai things
     const maxResponseLength = 2 ** 12 // 4,096
-    const textContext = 'The AI is the character C.C. from Code:Geass'
-    const textCompletion = await openai
-      .createCompletion({
-        model,
+    const chatCompletion = await chatAi(client.openaiConfig, {
+      user: interaction.user.id,
+      name: interaction.user.username,
+      prompt,
+    })
 
-        // character: c.c.
-        prompt: `${textContext}\nHuman: ${prompt}\nAI:`,
-        stop: ['Human: ', 'AI: '],
-
-        max_tokens: maxResponseLength / 4,
-        echo: true,
-
-        // chat preset
-        temperature: 0.9,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0.6,
-        best_of: 1,
-
-        user: interaction.user.id,
-      })
-      .catch(error => {
-        console.error('[openai:createCompletion:error]', error)
-        return null
-      })
-
-    if (textCompletion === null)
+    if (chatCompletion === null)
       return interaction.editReply({
         embeds: [
           responseEmbed.setDescription(
@@ -115,15 +97,15 @@ const command: Command = {
         ],
       })
 
-    const [textChoices] = textCompletion.data.choices
-    const response = filterResponse(textChoices.text)
+    const [textChoices] = chatCompletion.choices
+    const response = textChoices.message.content
 
-    console.log('[textCompletion]', textCompletion.data, { response })
+    console.log('[textCompletion]', chatCompletion, textChoices, { response })
 
     // limit response to maxResponseLength with ellipses at the end
     function limitResponse(response: string, maxLength: number) {
       if (response.length > maxLength)
-        return response.substring(0, maxResponseLength - 3) + '...'
+        return response.substring(0, maxResponseLength - 3).trimEnd() + '...'
       return response
     }
 

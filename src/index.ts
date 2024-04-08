@@ -14,11 +14,11 @@ import {
 import { SlashCommandBuilder } from '@discordjs/builders'
 
 // abstraction function imports
-import { createEmbed } from './utils/embed'
-import interactionCreate from './handlers/interactionCreate'
+import { createEmbed } from './utils/embed.js'
+import interactionCreate from './handlers/interactionCreate.js'
 
 // openai imports
-import { Configuration } from 'openai'
+import type { ClientOptions } from 'openai'
 
 //
 // setup .env
@@ -27,7 +27,7 @@ const { OPENAI_KEY, BOT_TOKEN } = process.env
 
 //
 // setup openai
-const openaiConfig = new Configuration({ apiKey: OPENAI_KEY })
+const openaiConfig = { apiKey: OPENAI_KEY } satisfies ClientOptions
 
 //
 // setup discord
@@ -38,7 +38,7 @@ export interface ExtendedClient extends Client {
     list: Collection<Snowflake, Date>
     add: (id: Snowflake) => Collection<Snowflake, Date> | null
   }
-  openaiConfig: Configuration
+  openaiConfig: ClientOptions
 }
 export interface Command {
   data: SlashCommandBuilder
